@@ -62,7 +62,6 @@ def show_template(**kwargs):
     iterable_dict(kwargs['disk'])
     print("\n|-------CONNECTIONS-------|\n")
     iterable_dict(kwargs['net'])
-    print("\nTo exit print 'S'")
 
 
 def iterable_dict(dict):
@@ -70,27 +69,16 @@ def iterable_dict(dict):
         print(f'{key}:   {value}')
 
 
-def run(loop_mode = False, interval = 1):
-    while True:
-        sleep(interval)
-        system('clear')
-        show_template(cpu = cpu_monitoring(), 
-                      memory = memory_monitoring(),
-                      disk = disk_monitoring(),
-                      net = net_monitoring()
-        )
-        if loop_mode:
-            continue
-        else:
-            break
-    print('End of the program')
-
-def clear_terminal():
-    system('clear')
-
+def run():
+    show_template(cpu = cpu_monitoring(), 
+                  memory = memory_monitoring(),
+                  disk = disk_monitoring(),
+                  net = net_monitoring()
+    )
+ 
 
 if __name__ == '__main__':
-    run(loop_mode = True)
+    run()
 
     
 
