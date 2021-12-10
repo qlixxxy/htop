@@ -1,22 +1,24 @@
 import psutil as ps
+import json
 from os import close, system
 from datetime import datetime
-import json
+from functools import wraps
 
 
 def json_decorator(func):
+    @wraps(func)
     def wrapper():
-        result_tuple = func()
         json_dict = {}
+        key = func.__name__.split("_")[0]
+        json_dict[key] = func()
         date = datetime.now()
-        with open(f'{date.strftime("%d_%b_%Y_%H_%M_%S")}.json', "w") as file:
-            for i in result_tuple:
-                header = i.__name__.split("_")[0]
-                json_dict[header] = i()
+        with open(f'{date.strftime("%d_%b_%Y_%H_%M_%S")}.json', "a") as file:
             file.write(json.dumps(json_dict, indent=4))
+        return func()
     return wrapper
 
 
+@json_decorator
 def cpu_monitoring(): 
     cpu_counter = ps.cpu_count()
     cpu_freq = ps.cpu_freq()
@@ -31,6 +33,7 @@ def cpu_monitoring():
     return cpu_info_dict
 
 
+@json_decorator
 def memory_monitoring():
     memory_info = ps.virtual_memory()
     bytes_per_mb = 1048576
@@ -43,6 +46,7 @@ def memory_monitoring():
     return memory_info_dict
 
 
+@json_decorator
 def disk_monitoring():
     disk_info = ps.disk_partitions()
     disk_info_dict = {}
@@ -53,6 +57,7 @@ def disk_monitoring():
     return disk_info_dict
 
  
+@json_decorator
 def net_monitoring():
     net_info = ps.net_io_counters()
     bytes_per_mb = 1048576
@@ -82,14 +87,8 @@ def iterable_dict(dict):
     for key, value in dict.items():
         print(f'{key}:   {value}')
 
-@json_decorator
-def to_json():
-    return cpu_monitoring, memory_monitoring, disk_monitoring, net_monitoring
 
-
-def run(is_json_needed = False):
-    if is_json_needed:
-        to_json()
+def run():
     show_template(cpu = cpu_monitoring(), 
                   memory = memory_monitoring(),
                   disk = disk_monitoring(),
@@ -98,7 +97,7 @@ def run(is_json_needed = False):
     
 
 if __name__ == '__main__':
-    run(is_json_needed=True)
+    run()
 
 
     
