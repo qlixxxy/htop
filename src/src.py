@@ -1,9 +1,23 @@
 import psutil as ps
 from os import close, system
-from time import sleep
+from datetime import datetime
+import json
 
 
-def cpu_monitoring():
+def json_decorator(func):
+    def wrapper():
+        result_tuple = func()
+        json_dict = {}
+        date = datetime.now()
+        with open(f'{date.strftime("%d_%b_%Y_%H_%M_%S")}.json', "w") as file:
+            for i in result_tuple:
+                header = i.__name__.split("_")[0]
+                json_dict[header] = i()
+            file.write(json.dumps(json_dict, indent=4))
+    return wrapper
+
+
+def cpu_monitoring(): 
     cpu_counter = ps.cpu_count()
     cpu_freq = ps.cpu_freq()
     cpu_usage = ps.cpu_percent()
@@ -34,11 +48,11 @@ def disk_monitoring():
     disk_info_dict = {}
     for disk in disk_info:
         disk_path = disk[0][0]
-        disk_info_dict[f"\nDISK_{disk_path}_INFO"] = "\n"
         disk_info_dict[f"disk_{disk_path}_type"] = disk[2]
         disk_info_dict[f"disk_{disk_path}_permissions"] = disk[3]
     return disk_info_dict
-    
+
+ 
 def net_monitoring():
     net_info = ps.net_io_counters()
     bytes_per_mb = 1048576
@@ -62,23 +76,30 @@ def show_template(**kwargs):
     iterable_dict(kwargs['disk'])
     print("\n|-------CONNECTIONS-------|\n")
     iterable_dict(kwargs['net'])
-
+    
 
 def iterable_dict(dict):
     for key, value in dict.items():
         print(f'{key}:   {value}')
 
+@json_decorator
+def to_json():
+    return cpu_monitoring, memory_monitoring, disk_monitoring, net_monitoring
 
-def run():
+
+def run(is_json_needed = False):
+    if is_json_needed:
+        to_json()
     show_template(cpu = cpu_monitoring(), 
                   memory = memory_monitoring(),
                   disk = disk_monitoring(),
                   net = net_monitoring()
     )
- 
+    
 
 if __name__ == '__main__':
-    run()
+    run(is_json_needed=True)
+
 
     
 
